@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@actiondesk/config": ["packages/config/src/index.ts"],
+      "@actiondesk/logger": ["packages/logger/src/index.ts"],
+      "@actiondesk/errors": ["packages/errors/src/index.ts"],
+      "@actiondesk/contracts": ["packages/contracts/src/index.ts"],
+      "@actiondesk/db": ["packages/db/src/index.ts"],
+      "@actiondesk/redis": ["packages/redis/src/index.ts"],
+      "@actiondesk/trpc": ["packages/trpc/src/index.ts"],
+      "@actiondesk/events": ["packages/events/src/index.ts"],
+      "@actiondesk/observability": ["packages/observability/src/index.ts"],
+      "@actiondesk/ui": ["packages/ui/src/index.ts"]
+    }
+  }
+}

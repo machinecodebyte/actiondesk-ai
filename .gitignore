@@ -1,0 +1,13 @@
+node_modules
+.turbo
+.next
+dist
+coverage
+.env
+.env.*
+!.env.example
+*.log
+pnpm-debug.log*
+drizzle
+tmp
+.DS_Store

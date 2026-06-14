@@ -1,0 +1,30 @@
+{
+  "name": "actiondesk-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write .",
+    "clean": "turbo run clean && rimraf node_modules .turbo",
+    "db:generate": "pnpm --filter @actiondesk/db db:generate",
+    "db:migrate": "pnpm --filter @actiondesk/db db:migrate",
+    "dev:web": "pnpm --filter @actiondesk/web dev",
+    "dev:gateway": "pnpm --filter @actiondesk/api-gateway dev"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@types/node": "^22.13.0",
+    "eslint": "^9.20.0",
+    "prettier": "^3.5.0",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
+    "turbo": "^2.4.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0"
+  }
+}

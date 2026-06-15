@@ -1,1 +1,1 @@
-export const integrationCorsairModule = "corsair" as const;
+export * from "./corsair.client.js";

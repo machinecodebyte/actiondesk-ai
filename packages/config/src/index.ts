@@ -78,7 +78,7 @@ export const ObservabilityEnvSchema = z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true"),
-    OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+    OTEL_EXPORTER_OTLP_ENDPOINT: optionalUrl(),
     SERVICE_NAMESPACE: z.string().min(1).default("actiondesk-ai")
   })
   .strict();
@@ -126,5 +126,12 @@ function selectKnownKeys<TShape extends z.ZodRawShape>(
       return env;
     },
     {}
+  );
+}
+
+function optionalUrl() {
+  return z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url().optional()
   );
 }

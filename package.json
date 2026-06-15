@@ -13,12 +13,18 @@
     "clean": "turbo run clean && rimraf node_modules .turbo",
     "db:generate": "pnpm --filter @actiondesk/db db:generate",
     "db:migrate": "pnpm --filter @actiondesk/db db:migrate",
-    "dev:web": "pnpm --filter @actiondesk/web dev",
-    "dev:gateway": "pnpm --filter @actiondesk/api-gateway dev"
+    "dev:web": "turbo run dev --filter=@actiondesk/web",
+    "dev:gateway": "turbo run dev --filter=@actiondesk/api-gateway",
+    "dev:auth": "turbo run dev --filter=@actiondesk/auth-service",
+    "dev:integration": "turbo run dev --filter=@actiondesk/integration-service",
+    "dev:core": "turbo run dev --parallel --filter=@actiondesk/api-gateway --filter=@actiondesk/auth-service --filter=@actiondesk/integration-service",
+    "dev:all": "turbo run dev --parallel",
+    "test": "tsx --test \"packages/*/test/**/*.test.ts\" \"apps/*/test/**/*.test.ts\""
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@types/node": "^22.13.0",
+    "ajv": "^8.20.0",
     "eslint": "^9.20.0",
     "prettier": "^3.5.0",
     "rimraf": "^6.0.1",

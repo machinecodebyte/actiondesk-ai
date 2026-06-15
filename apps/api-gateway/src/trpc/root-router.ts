@@ -7,11 +7,13 @@ import { healthRouter } from "../routers/health.router.js";
 import { inboxRouter } from "../routers/inbox.router.js";
 import { integrationsRouter } from "../routers/integrations.router.js";
 import { searchRouter } from "../routers/search.router.js";
+import { workspaceRouter } from "../routers/workspace.router.js";
 import { router } from "./procedures.js";
 
 export const appRouter = router({
   health: healthRouter,
   auth: authRouter,
+  workspace: workspaceRouter,
   integrations: integrationsRouter,
   inbox: inboxRouter,
   calendar: calendarRouter,

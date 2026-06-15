@@ -8,9 +8,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your local environment}
       POSTGRES_DB: ${POSTGRES_DB:-actiondesk_ai}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-55450}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - actiondesk-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-actiondesk} -d ${POSTGRES_DB:-actiondesk_ai}"]
       interval: 10s
@@ -23,9 +23,9 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_PORT:-6390}:6379"
     volumes:
-      - redis-data:/data
+      - actiondesk-redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -58,5 +58,7 @@ services:
   #       condition: service_healthy
 
 volumes:
-  postgres-data:
-  redis-data:
+  actiondesk-postgres-data:
+    name: actiondesk-postgres-data
+  actiondesk-redis-data:
+    name: actiondesk-redis-data

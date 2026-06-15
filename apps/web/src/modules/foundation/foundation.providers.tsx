@@ -17,6 +17,12 @@ export function FoundationProviders({ children }: Readonly<{ children: ReactNode
       links: [
         httpBatchLink({
           url: `${foundationConfig.apiGatewayUrl}/trpc`,
+          fetch(url, options) {
+            return fetch(url, {
+              ...options,
+              credentials: "include"
+            });
+          },
           headers() {
             return {
               "x-request-id": crypto.randomUUID()

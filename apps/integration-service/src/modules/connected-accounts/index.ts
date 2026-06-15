@@ -1,1 +1,2 @@
-export const integrationConnectedAccountsModule = "connected-accounts" as const;
+export * from "./connected-accounts.routes.js";
+export * from "./connected-accounts.service.js";

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const ServiceEnvSchema = BaseNodeEnvSchema.extend({
   SERVICE_NAME: z.literal("ai-service").default("ai-service"),
-  PORT: z.coerce.number().int().min(1).max(65535).default(4015),
+  PORT: z.coerce.number().int().min(1).max(65535).default(4156),
   ...ObservabilityEnvSchema.shape
 }).strict();
 

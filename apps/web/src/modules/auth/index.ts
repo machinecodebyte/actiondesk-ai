@@ -1,1 +1,1 @@
-export const authModule = "auth" as const;
+export * from "./auth-session";

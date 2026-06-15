@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const ServiceEnvSchema = BaseNodeEnvSchema.extend({
   SERVICE_NAME: z.literal("calendar-service").default("calendar-service"),
-  PORT: z.coerce.number().int().min(1).max(65535).default(4013),
+  PORT: z.coerce.number().int().min(1).max(65535).default(4154),
   ...ObservabilityEnvSchema.shape
 }).strict();
 

@@ -7,5 +7,5 @@ const BrowserConfigSchema = z.object({
 
 export const foundationConfig = BrowserConfigSchema.parse({
   appName: process.env.NEXT_PUBLIC_APP_NAME ?? "ActionDesk AI",
-  apiGatewayUrl: process.env.NEXT_PUBLIC_API_GATEWAY_URL ?? "http://localhost:4000"
+  apiGatewayUrl: process.env.NEXT_PUBLIC_API_GATEWAY_URL ?? "http://localhost:4050"
 });

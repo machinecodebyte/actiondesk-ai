@@ -1,137 +1,101 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { AppShell, Badge, Button, Card, CardBody, CardHeader } from "@actiondesk/ui";
+import Link from "next/link";
+import { Badge, Button, Card, CardBody, CardHeader } from "@actiondesk/ui";
 import type { ConnectedAccount, IntegrationProvider } from "@actiondesk/contracts";
-import { trpc } from "@/lib/trpc";
-import { FoundationHealthBanner } from "@/modules/foundation/foundation.health-banner";
-import { RouteGuard } from "@/modules/foundation/foundation.route-guard";
 import { routes } from "@/lib/routes";
+import { trpc } from "@/lib/trpc";
+import { DashboardFrame } from "./dashboard-frame";
 
-const navItems = [
-  { label: "Dashboard", href: routes.dashboard, active: true },
-  { label: "Onboarding", href: routes.onboarding },
-  { label: "Action Inbox", href: routes.dashboard },
-  { label: "Calendar", href: routes.dashboard },
-  { label: "Agent Command", href: routes.dashboard },
-  { label: "Settings", href: routes.dashboard }
-];
-
-const integrationProviders: Array<{ provider: IntegrationProvider; label: string }> = [
+const providers: Array<{ provider: IntegrationProvider; label: string }> = [
   { provider: "gmail", label: "Gmail" },
   { provider: "google_calendar", label: "Google Calendar" }
 ];
 
-const panels = [
-  {
-    title: "Action Inbox",
-    tone: "green" as const,
-    copy: "Future email-derived command items will appear here after integrations are built."
-  },
-  {
-    title: "Calendar Panel",
-    tone: "blue" as const,
-    copy: "Availability, conflicts, and calendar actions are reserved for a later module."
-  },
-  {
-    title: "Agent Command",
-    tone: "amber" as const,
-    copy: "The agent command surface is present without tool execution or AI orchestration."
-  }
-];
-
 export function DashboardShell() {
-  const router = useRouter();
   const integrations = trpc.integrations.status.useQuery(undefined, { retry: false });
-  const logout = trpc.auth.logout.useMutation();
-
-  async function handleLogout() {
-    try {
-      await logout.mutateAsync({});
-    } finally {
-      router.replace(routes.login);
-    }
-  }
+  const mail = trpc.mail.listThreads.useQuery({ pageSize: 1 }, { retry: false });
+  const calendar = trpc.calendar.listEvents.useQuery({ pageSize: 1 }, { retry: false });
+  const commands = trpc.commands.list.useQuery({ status: "open", pageSize: 1 }, { retry: false });
+  const approvals = trpc.approvals.list.useQuery({ status: "pending", pageSize: 1 }, { retry: false });
 
   return (
-    <RouteGuard requireAuth>
-      <AppShell
-        title="ActionDesk AI"
-        navItems={navItems}
-        topbar={
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Workspace</p>
-              <h1 className="text-lg font-semibold text-ink">Command center</h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <FoundationHealthBanner />
-              <Button disabled={logout.isLoading} onClick={() => void handleLogout()} variant="secondary">
-                Logout
-              </Button>
-            </div>
+    <DashboardFrame active={routes.dashboard} title="Command center">
+      <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
+        <section className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            {providers.map((provider) => (
+              <IntegrationStatusCard
+                account={integrations.data?.accounts.find((account) => account.provider === provider.provider)}
+                isLoading={integrations.isLoading}
+                key={provider.provider}
+                label={provider.label}
+              />
+            ))}
           </div>
-        }
-      >
-        <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
-          <section className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              {integrationProviders.map((item) => (
-                <IntegrationStatusCard
-                  account={integrations.data?.accounts.find(
-                    (account) => account.provider === item.provider
-                  )}
-                  isLoading={integrations.isLoading}
-                  key={item.provider}
-                  label={item.label}
-                />
-              ))}
-            </div>
-            <section className="grid gap-5 lg:grid-cols-3">
-              {panels.map((panel) => (
-                <Card key={panel.title}>
-                  <CardHeader className="flex items-center justify-between gap-3">
-                    <h2 className="font-semibold text-slate-950">{panel.title}</h2>
-                    <Badge tone={panel.tone}>Empty</Badge>
-                  </CardHeader>
-                  <CardBody>
-                    <p className="text-sm leading-6 text-slate-600">{panel.copy}</p>
-                    <div className="mt-5 flex h-24 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 text-center text-sm text-slate-500">
-                      Connect Gmail and Calendar to start building your command center.
-                    </div>
-                  </CardBody>
-                </Card>
-              ))}
-            </section>
+          <section className="grid gap-5 lg:grid-cols-4">
+            <MetricCard href={routes.inbox} label="Cached threads" value={mail.data?.pagination.totalItems ?? 0} />
+            <MetricCard href={routes.calendar} label="Cached events" value={calendar.data?.pagination.totalItems ?? 0} />
+            <MetricCard href={routes.commands} label="Open commands" value={commands.data?.pagination.totalItems ?? 0} />
+            <MetricCard href={routes.approvals} label="Pending approvals" value={approvals.data?.pagination.totalItems ?? 0} />
           </section>
           <Card>
             <CardHeader>
-              <h2 className="font-semibold text-slate-950">Integration Health</h2>
+              <h2 className="font-semibold text-slate-950">Next workflow step</h2>
             </CardHeader>
             <CardBody className="space-y-4">
-              {integrations.error ? (
-                <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                  {integrations.error.message}
-                </p>
-              ) : null}
-              {integrationProviders.map((item) => {
-                const account = integrations.data?.accounts.find(
-                  (current) => current.provider === item.provider
-                );
-                const status = account?.status ?? "disconnected";
-
-                return (
-                  <div key={item.provider} className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-medium text-slate-700">{item.label}</span>
-                    <Badge tone={statusTone(status)}>{integrations.isLoading ? "loading" : status}</Badge>
-                  </div>
-                );
-              })}
+              <p className="text-sm leading-6 text-slate-600">
+                Use manual sync after Gmail or Google Calendar is connected. If Corsair live provider operations are not configured yet, sync and provider actions will return a clear setup message without inserting fake data.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link href={routes.onboarding}>
+                  <Button>Connect sources</Button>
+                </Link>
+                <Link href={routes.commands}>
+                  <Button variant="secondary">Create command item</Button>
+                </Link>
+              </div>
             </CardBody>
           </Card>
-        </div>
-      </AppShell>
-    </RouteGuard>
+        </section>
+        <Card>
+          <CardHeader>
+            <h2 className="font-semibold text-slate-950">Integration Health</h2>
+          </CardHeader>
+          <CardBody className="space-y-4">
+            {integrations.error ? (
+              <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                {integrations.error.message}
+              </p>
+            ) : null}
+            {providers.map((provider) => {
+              const account = integrations.data?.accounts.find((item) => item.provider === provider.provider);
+              const status = account?.status ?? "disconnected";
+
+              return (
+                <div key={provider.provider} className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-slate-700">{provider.label}</span>
+                  <Badge tone={statusTone(status)}>{integrations.isLoading ? "loading" : status}</Badge>
+                </div>
+              );
+            })}
+          </CardBody>
+        </Card>
+      </div>
+    </DashboardFrame>
+  );
+}
+
+function MetricCard({ href, label, value }: { href: string; label: string; value: number }) {
+  return (
+    <Link href={href}>
+      <Card className="h-full hover:border-slate-300">
+        <CardBody>
+          <p className="text-sm font-medium text-slate-500">{label}</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">{value}</p>
+        </CardBody>
+      </Card>
+    </Link>
   );
 }
 
@@ -155,8 +119,8 @@ function IntegrationStatusCard({
       <CardBody>
         <p className="text-sm leading-6 text-slate-600">
           {status === "connected"
-            ? "Connected and ready for later workflow phases."
-            : "Not connected. Finish onboarding before ActionDesk AI can use this source."}
+            ? "Connected in persisted integration state."
+            : "Not connected. Finish onboarding before live sync can run."}
         </p>
       </CardBody>
     </Card>

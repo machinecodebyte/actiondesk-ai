@@ -3,6 +3,10 @@ import swaggerUi from "@fastify/swagger-ui";
 import type { FastifyInstance } from "fastify";
 import type { GatewayEnv } from "./env.js";
 
+type SwaggerApp = FastifyInstance & {
+  swagger: () => unknown;
+};
+
 export async function registerOpenApi(app: FastifyInstance, env: GatewayEnv): Promise<void> {
   await app.register(swagger, {
     openapi: {
@@ -10,7 +14,7 @@ export async function registerOpenApi(app: FastifyInstance, env: GatewayEnv): Pr
       info: {
         title: "ActionDesk AI API Gateway",
         version: "0.1.0",
-        description: "REST facade for Phase 1 auth, workspace, and integration testing."
+        description: "REST facade for ActionDesk AI auth, integrations, and core workflow testing."
       },
       servers: [{ url: env.API_GATEWAY_URL }],
       components: {
@@ -26,7 +30,11 @@ export async function registerOpenApi(app: FastifyInstance, env: GatewayEnv): Pr
         { name: "Health" },
         { name: "Auth" },
         { name: "Workspaces" },
-        { name: "Integrations" }
+        { name: "Integrations" },
+        { name: "Mail" },
+        { name: "Calendar" },
+        { name: "Commands" },
+        { name: "Approvals" }
       ]
     }
   });
@@ -39,5 +47,5 @@ export async function registerOpenApi(app: FastifyInstance, env: GatewayEnv): Pr
     }
   });
 
-  app.get("/openapi.json", { schema: { hide: true } }, async () => app.swagger());
+  app.get("/openapi.json", async () => (app as SwaggerApp).swagger());
 }

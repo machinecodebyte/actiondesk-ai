@@ -8,6 +8,13 @@
       "when": 1781545059177,
       "tag": "0000_cheerful_preak",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781553816259,
+      "tag": "0001_bright_xavin",
+      "breakpoints": true
     }
   ]
 }

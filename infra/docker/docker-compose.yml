@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-actiondesk}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your local environment}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-actiondesk_dev_password}
       POSTGRES_DB: ${POSTGRES_DB:-actiondesk_ai}
     ports:
       - "${POSTGRES_PORT:-55450}:5432"

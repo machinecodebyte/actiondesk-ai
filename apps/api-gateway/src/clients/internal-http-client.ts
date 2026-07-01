@@ -28,8 +28,16 @@ export async function postJson<T>(url: string, options: JsonRequestOptions): Pro
   return requestJson<T>("POST", url, options);
 }
 
+export async function patchJson<T>(url: string, options: JsonRequestOptions): Promise<T> {
+  return requestJson<T>("PATCH", url, options);
+}
+
+export async function deleteJson<T>(url: string, options: JsonRequestOptions): Promise<T> {
+  return requestJson<T>("DELETE", url, options);
+}
+
 async function requestJson<T>(
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   url: string,
   options: JsonRequestOptions
 ): Promise<T> {

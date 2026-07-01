@@ -3,6 +3,10 @@ import swaggerUi from "@fastify/swagger-ui";
 import type { FastifyInstance } from "fastify";
 import type { ServiceEnv } from "./env.js";
 
+type SwaggerApp = FastifyInstance & {
+  swagger: () => unknown;
+};
+
 export async function registerOpenApi(app: FastifyInstance, env: ServiceEnv): Promise<void> {
   await app.register(swagger, {
     openapi: {
@@ -25,5 +29,5 @@ export async function registerOpenApi(app: FastifyInstance, env: ServiceEnv): Pr
     }
   });
 
-  app.get("/openapi.json", { schema: { hide: true } }, async () => app.swagger());
+  app.get("/openapi.json", async () => (app as SwaggerApp).swagger());
 }

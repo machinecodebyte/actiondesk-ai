@@ -1,9 +1,16 @@
-import { BaseNodeEnvSchema, createEnv, loadLocalEnvFiles, ObservabilityEnvSchema } from "@actiondesk/config";
+import {
+  BaseNodeEnvSchema,
+  createEnv,
+  DatabaseEnvSchema,
+  loadLocalEnvFiles,
+  ObservabilityEnvSchema
+} from "@actiondesk/config";
 import { z } from "zod";
 
 const ServiceEnvSchema = BaseNodeEnvSchema.extend({
   SERVICE_NAME: z.literal("command-service").default("command-service"),
   PORT: z.coerce.number().int().min(1).max(65535).default(4155),
+  ...DatabaseEnvSchema.shape,
   ...ObservabilityEnvSchema.shape
 }).strict();
 

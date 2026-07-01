@@ -8,5 +8,7 @@ export * from "./common/index.js";
 export * from "./events/index.js";
 export * from "./inbox/index.js";
 export * from "./integrations/index.js";
+export * from "./mail/index.js";
 export * from "./search/index.js";
+export * from "./sync/index.js";
 export * from "./workspace/index.js";

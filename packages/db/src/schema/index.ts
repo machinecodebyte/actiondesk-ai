@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   index,
   jsonb,
   pgTable,
@@ -151,10 +152,191 @@ export const auditLogs = pgTable(
   })
 );
 
+export const mailThreads = pgTable(
+  "mail_threads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull().default("gmail"),
+    providerThreadId: text("provider_thread_id").notNull(),
+    subject: text("subject"),
+    snippet: text("snippet"),
+    fromEmail: text("from_email"),
+    fromName: text("from_name"),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }),
+    unread: boolean("unread").notNull().default(false),
+    rawMetadata: jsonb("raw_metadata").$type<Record<string, unknown> | null>(),
+    ...timestamps
+  },
+  (table) => ({
+    workspaceIdx: index("mail_threads_workspace_idx").on(table.workspaceId),
+    unreadIdx: index("mail_threads_unread_idx").on(table.unread),
+    lastMessageAtIdx: index("mail_threads_last_message_at_idx").on(table.lastMessageAt),
+    uniqueProviderThread: uniqueIndex("mail_threads_workspace_provider_thread_uidx").on(
+      table.workspaceId,
+      table.provider,
+      table.providerThreadId
+    )
+  })
+);
+
+export const mailMessages = pgTable(
+  "mail_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    threadId: uuid("thread_id").references(() => mailThreads.id, { onDelete: "set null" }),
+    provider: text("provider").notNull().default("gmail"),
+    providerMessageId: text("provider_message_id").notNull(),
+    subject: text("subject"),
+    snippet: text("snippet"),
+    bodyText: text("body_text"),
+    fromEmail: text("from_email"),
+    fromName: text("from_name"),
+    toEmails: jsonb("to_emails").$type<string[] | null>(),
+    ccEmails: jsonb("cc_emails").$type<string[] | null>(),
+    receivedAt: timestamp("received_at", { withTimezone: true }),
+    unread: boolean("unread").notNull().default(false),
+    hasAttachments: boolean("has_attachments").notNull().default(false),
+    rawMetadata: jsonb("raw_metadata").$type<Record<string, unknown> | null>(),
+    ...timestamps
+  },
+  (table) => ({
+    workspaceIdx: index("mail_messages_workspace_idx").on(table.workspaceId),
+    threadIdx: index("mail_messages_thread_idx").on(table.threadId),
+    receivedAtIdx: index("mail_messages_received_at_idx").on(table.receivedAt),
+    uniqueProviderMessage: uniqueIndex("mail_messages_workspace_provider_message_uidx").on(
+      table.workspaceId,
+      table.provider,
+      table.providerMessageId
+    )
+  })
+);
+
+export const calendarEvents = pgTable(
+  "calendar_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull().default("google_calendar"),
+    providerEventId: text("provider_event_id").notNull(),
+    title: text("title"),
+    description: text("description"),
+    location: text("location"),
+    startAt: timestamp("start_at", { withTimezone: true }),
+    endAt: timestamp("end_at", { withTimezone: true }),
+    timezone: text("timezone"),
+    attendees: jsonb("attendees").$type<string[] | null>(),
+    status: text("status"),
+    rawMetadata: jsonb("raw_metadata").$type<Record<string, unknown> | null>(),
+    ...timestamps
+  },
+  (table) => ({
+    workspaceIdx: index("calendar_events_workspace_idx").on(table.workspaceId),
+    startAtIdx: index("calendar_events_start_at_idx").on(table.startAt),
+    uniqueProviderEvent: uniqueIndex("calendar_events_workspace_provider_event_uidx").on(
+      table.workspaceId,
+      table.provider,
+      table.providerEventId
+    )
+  })
+);
+
+export const commandItems = pgTable(
+  "command_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sourceType: text("source_type").notNull(),
+    sourceId: uuid("source_id"),
+    sourceProviderId: text("source_provider_id"),
+    title: text("title").notNull(),
+    summary: text("summary"),
+    intent: text("intent").notNull().default("manual"),
+    priority: text("priority").notNull().default("normal"),
+    status: text("status").notNull().default("open"),
+    suggestedAction: text("suggested_action"),
+    dueAt: timestamp("due_at", { withTimezone: true }),
+    snoozedUntil: timestamp("snoozed_until", { withTimezone: true }),
+    ...timestamps
+  },
+  (table) => ({
+    workspaceIdx: index("command_items_workspace_idx").on(table.workspaceId),
+    userIdx: index("command_items_user_idx").on(table.userId),
+    statusIdx: index("command_items_status_idx").on(table.status),
+    priorityIdx: index("command_items_priority_idx").on(table.priority),
+    dueAtIdx: index("command_items_due_at_idx").on(table.dueAt)
+  })
+);
+
+export const approvalRequests = pgTable(
+  "approval_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    commandItemId: uuid("command_item_id").references(() => commandItems.id, { onDelete: "set null" }),
+    actionType: text("action_type").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    status: text("status").notNull().default("pending"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    rejectedAt: timestamp("rejected_at", { withTimezone: true }),
+    executedAt: timestamp("executed_at", { withTimezone: true }),
+    errorMessage: text("error_message"),
+    ...timestamps
+  },
+  (table) => ({
+    workspaceIdx: index("approval_requests_workspace_idx").on(table.workspaceId),
+    userIdx: index("approval_requests_user_idx").on(table.userId),
+    statusIdx: index("approval_requests_status_idx").on(table.status),
+    actionTypeIdx: index("approval_requests_action_type_idx").on(table.actionType)
+  })
+);
+
+export const syncRuns = pgTable(
+  "sync_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    syncType: text("sync_type").notNull(),
+    status: text("status").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    errorMessage: text("error_message"),
+    metadata: jsonb("metadata").$type<Record<string, unknown> | null>()
+  },
+  (table) => ({
+    workspaceIdx: index("sync_runs_workspace_idx").on(table.workspaceId),
+    providerIdx: index("sync_runs_provider_idx").on(table.provider),
+    statusIdx: index("sync_runs_status_idx").on(table.status),
+    startedAtIdx: index("sync_runs_started_at_idx").on(table.startedAt)
+  })
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   workspaceMembers: many(workspaceMembers),
   sessions: many(userSessions),
-  connectedAccounts: many(connectedAccounts)
+  connectedAccounts: many(connectedAccounts),
+  commandItems: many(commandItems),
+  approvalRequests: many(approvalRequests)
 }));
 
 export const workspacesRelations = relations(workspaces, ({ many, one }) => ({
@@ -163,7 +345,13 @@ export const workspacesRelations = relations(workspaces, ({ many, one }) => ({
     references: [users.id]
   }),
   members: many(workspaceMembers),
-  connectedAccounts: many(connectedAccounts)
+  connectedAccounts: many(connectedAccounts),
+  mailThreads: many(mailThreads),
+  mailMessages: many(mailMessages),
+  calendarEvents: many(calendarEvents),
+  commandItems: many(commandItems),
+  approvalRequests: many(approvalRequests),
+  syncRuns: many(syncRuns)
 }));
 
 export const workspaceMembersRelations = relations(workspaceMembers, ({ one }) => ({
@@ -173,6 +361,66 @@ export const workspaceMembersRelations = relations(workspaceMembers, ({ one }) =
   }),
   workspace: one(workspaces, {
     fields: [workspaceMembers.workspaceId],
+    references: [workspaces.id]
+  })
+}));
+
+export const mailThreadsRelations = relations(mailThreads, ({ many, one }) => ({
+  workspace: one(workspaces, {
+    fields: [mailThreads.workspaceId],
+    references: [workspaces.id]
+  }),
+  messages: many(mailMessages)
+}));
+
+export const mailMessagesRelations = relations(mailMessages, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [mailMessages.workspaceId],
+    references: [workspaces.id]
+  }),
+  thread: one(mailThreads, {
+    fields: [mailMessages.threadId],
+    references: [mailThreads.id]
+  })
+}));
+
+export const calendarEventsRelations = relations(calendarEvents, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [calendarEvents.workspaceId],
+    references: [workspaces.id]
+  })
+}));
+
+export const commandItemsRelations = relations(commandItems, ({ many, one }) => ({
+  workspace: one(workspaces, {
+    fields: [commandItems.workspaceId],
+    references: [workspaces.id]
+  }),
+  user: one(users, {
+    fields: [commandItems.userId],
+    references: [users.id]
+  }),
+  approvalRequests: many(approvalRequests)
+}));
+
+export const approvalRequestsRelations = relations(approvalRequests, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [approvalRequests.workspaceId],
+    references: [workspaces.id]
+  }),
+  user: one(users, {
+    fields: [approvalRequests.userId],
+    references: [users.id]
+  }),
+  commandItem: one(commandItems, {
+    fields: [approvalRequests.commandItemId],
+    references: [commandItems.id]
+  })
+}));
+
+export const syncRunsRelations = relations(syncRuns, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [syncRuns.workspaceId],
     references: [workspaces.id]
   })
 }));

@@ -3,5 +3,9 @@ export const routes = {
   login: "/auth/login",
   authCallback: "/auth/callback",
   onboarding: "/onboarding",
-  dashboard: "/dashboard"
+  dashboard: "/dashboard",
+  inbox: "/dashboard/inbox",
+  calendar: "/dashboard/calendar",
+  commands: "/dashboard/commands",
+  approvals: "/dashboard/approvals"
 } as const;

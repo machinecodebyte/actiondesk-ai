@@ -6,6 +6,7 @@ import { commandsRouter } from "../routers/commands.router.js";
 import { healthRouter } from "../routers/health.router.js";
 import { inboxRouter } from "../routers/inbox.router.js";
 import { integrationsRouter } from "../routers/integrations.router.js";
+import { mailRouter } from "../routers/mail.router.js";
 import { searchRouter } from "../routers/search.router.js";
 import { workspaceRouter } from "../routers/workspace.router.js";
 import { router } from "./procedures.js";
@@ -15,6 +16,7 @@ export const appRouter = router({
   auth: authRouter,
   workspace: workspaceRouter,
   integrations: integrationsRouter,
+  mail: mailRouter,
   inbox: inboxRouter,
   calendar: calendarRouter,
   commands: commandsRouter,
